@@ -1,0 +1,51 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    # Weekly smoke against live gatefare.io so we catch upstream schema
+    # drift even when nothing local changed. Runs Mondays at 09:00 UTC.
+    - cron: "0 9 * * 1"
+
+jobs:
+  test:
+    name: typecheck + vitest + build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+      - run: npm ci
+      - name: Typecheck
+        run: npx tsc --noEmit
+      - name: Unit tests (vitest)
+        run: npx vitest run --reporter=dot
+      - name: Build dist/
+        run: npx tsc -p tsconfig.build.json
+      - name: Pack dry-run (verifies package shape)
+        run: npm pack --dry-run
+
+  smoke-live:
+    name: live smoke vs gatefare.io
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    needs: test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+      - run: npm ci
+      - name: Read-only smoke
+        run: npx tsx scripts/smoke-live.ts
+      - name: Build
+        run: npx tsc -p tsconfig.build.json
+      - name: Consumer-perspective smoke (uses dist/)
+        run: npx tsx scripts/smoke-dist.ts
