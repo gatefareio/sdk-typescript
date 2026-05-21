@@ -193,6 +193,17 @@ new Gatefare({
 });
 ```
 
+## Related packages
+
+Gatefare ships three first-party packages. They share the same x402
+protocol and the same backend, so a project can mix them as needed:
+
+| Package | Where | When to use |
+|---|---|---|
+| [`@gatefare/client`](https://www.npmjs.com/package/@gatefare/client) (this one) | npm | TypeScript / JavaScript agents that pay APIs in code |
+| [`gatefare`](https://pypi.org/project/gatefare/) | PyPI | Python agents (LangChain, LlamaIndex, etc.) |
+| [`@gatefare/mcp`](https://www.npmjs.com/package/@gatefare/mcp) | npm | Drop into Claude Desktop / Cursor / any MCP host to give the agent tools for catalog discovery + paid calls |
+
 ## License
 
 MIT. See [LICENSE](./LICENSE).
@@ -201,5 +212,5 @@ MIT. See [LICENSE](./LICENSE).
 
 - Gatefare website: https://gatefare.io
 - Catalog: https://gatefare.io/catalog
-- Issues: https://github.com/gatefareio/sdk/issues
-- Source: https://github.com/gatefareio/sdk
+- Issues: https://github.com/gatefareio/sdk-typescript/issues
+- Source: https://github.com/gatefareio/sdk-typescript
