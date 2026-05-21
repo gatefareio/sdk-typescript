@@ -54,7 +54,42 @@ export interface GatefareOptions {
   fetch?: typeof fetch;
 }
 
-/** Public API record returned by listCatalog / getApi. */
+/** Positive-only publisher trust signals. Returned on getApi()
+ *  detail responses (catalog list endpoints omit them for payload
+ *  size). New accounts have all booleans false — agents should
+ *  treat absence of badges as "no signal yet", NOT as a warning.
+ *  Thresholds are env-tunable server-side; the booleans here are
+ *  the authoritative answer. */
+export interface AccountReputation {
+  tenureMonths: number;
+  established: boolean;
+  lifetimeSuccessCalls: number;
+  topContributor: boolean;
+  averageRating: number | null;
+  reviewCount: number;
+  highlyRated: boolean;
+  activeApis: number;
+  computedAt: number;
+}
+
+/** Publisher information attached to a catalog detail response. */
+export interface PublisherInfo {
+  handle: string | null;
+  displayName: string | null;
+  /** Optional admin-issued tier (bronze/silver/gold). null when none. */
+  verificationTier: string | null;
+  /** Account-level trust signals. Present on getApi() detail
+   *  responses; absent on lightweight list-endpoint payloads. */
+  reputation?: AccountReputation;
+}
+
+/** Public API record returned by listCatalog / getApi.
+ *
+ *  The fields up to `tags` are present on both endpoints. The fields
+ *  below (publisher, sampleResponse) are populated by getApi() only —
+ *  the list endpoint omits them to keep response sizes small. Both
+ *  are typed as optional so type-checked code doesn't need to
+ *  conditional-narrow when reading from a list. */
 export interface CatalogApi {
   /** Globally-unique identifier. Use for proxy URLs. */
   slug: string;
@@ -76,6 +111,27 @@ export interface CatalogApi {
   proxyUrl: string;
   categories: string[];
   tags: string[];
+  /** Full publisher record with reputation badges. Populated by
+   *  getApi() only — undefined on listCatalog() responses. Use this
+   *  to make trust decisions BEFORE issuing a paid call:
+   *
+   *      const api = await gf.getApi(slug);
+   *      if (!api.publisher?.reputation?.established) {
+   *        // brand-new account — extra caution OR proceed if
+   *        // small-dollar exploratory call
+   *      }
+   */
+  publisher?: PublisherInfo;
+  /** Publisher-pasted sample response (max 4 KiB UTF-8) shown on
+   *  the catalog detail page. Populated by getApi() only. Lets the
+   *  agent eyeball the expected output shape BEFORE paying:
+   *
+   *      const api = await gf.getApi(slug);
+   *      console.log("Publisher claims this comes back:", api.sampleResponse);
+   *
+   *  null when the publisher has not provided one (legacy listings
+   *  pre-dating BACKLOG #47). undefined on list-endpoint payloads. */
+  sampleResponse?: string | null;
 }
 
 /** Filters for listCatalog. */

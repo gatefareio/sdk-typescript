@@ -5,7 +5,13 @@
 // callers also get useful headroom (the public limiter is generous
 // enough for typical agent traffic).
 
-import { GatefareApiError, type CatalogApi, type CatalogQuery } from "./types.js";
+import {
+  GatefareApiError,
+  type AccountReputation,
+  type CatalogApi,
+  type CatalogQuery,
+  type PublisherInfo,
+} from "./types.js";
 
 interface CatalogContext {
   baseUrl: string;
@@ -26,6 +32,16 @@ interface RawCatalogApi {
   proxyUrl: string;
   categories?: string[];
   tags?: string[];
+  // Detail-only fields populated by /api/catalog/:slug. The lighter
+  // /api/catalog list endpoint omits them; we just pass through
+  // whatever the wire gives us (undefined when absent).
+  publisher?: {
+    handle?: string | null;
+    displayName?: string | null;
+    verificationTier?: string | null;
+    reputation?: AccountReputation;
+  };
+  sampleResponse?: string | null;
 }
 
 /** Parse "$0.10" or "0.10" into a number. NaN-safe (returns 0). */
@@ -39,6 +55,21 @@ function rawToCatalogApi(r: RawCatalogApi): CatalogApi {
   // we accept future networks without dropping them; downstream code
   // gates on testnet flag rather than the literal union.
   const network = r.network as CatalogApi["network"];
+
+  // Detail-only fields. We surface them when the wire provided them
+  // (getApi calls) and leave them undefined when not (listCatalog).
+  // This way `if (api.publisher?.reputation?.established)` works
+  // safely on both code paths without conditional narrowing.
+  let publisher: PublisherInfo | undefined;
+  if (r.publisher) {
+    publisher = {
+      handle: r.publisher.handle ?? null,
+      displayName: r.publisher.displayName ?? null,
+      verificationTier: r.publisher.verificationTier ?? null,
+      reputation: r.publisher.reputation,
+    };
+  }
+
   return {
     slug: r.slug,
     urlName: r.urlName ?? null,
@@ -53,6 +84,8 @@ function rawToCatalogApi(r: RawCatalogApi): CatalogApi {
     proxyUrl: r.proxyUrl,
     categories: r.categories ?? [],
     tags: r.tags ?? [],
+    publisher,
+    sampleResponse: r.sampleResponse ?? undefined,
   };
 }
 

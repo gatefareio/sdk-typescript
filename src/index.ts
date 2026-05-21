@@ -368,12 +368,14 @@ function backoff(attempt: number): number {
 
 // Re-export public types so consumers can `import type { ... } from "@gatefare/client"`.
 export type {
+  AccountReputation,
   CallApiOptions,
   CallApiResult,
   CatalogApi,
   CatalogQuery,
   GatefareNetwork,
   GatefareOptions,
+  PublisherInfo,
   SpendCaps,
   WalletBalance,
   WalletOptions,
