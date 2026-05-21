@@ -1,5 +1,9 @@
 # @gatefare/client
 
+[![npm version](https://img.shields.io/npm/v/@gatefare/client.svg)](https://www.npmjs.com/package/@gatefare/client)
+[![CI](https://github.com/gatefareio/sdk-typescript/actions/workflows/ci.yml/badge.svg)](https://github.com/gatefareio/sdk-typescript/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
+
 TypeScript client for the [Gatefare](https://gatefare.io) x402 payment
 marketplace. Pay any Gatefare-listed API in USDC on Base with three
 function calls. Non-custodial. No platform account required for paying;
